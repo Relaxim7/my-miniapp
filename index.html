@@ -1,34 +1,509 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Привет</title>
+    <title>CS3AR</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
+        :root {
+            --bg: #0b0f14;
+            --card: #151a21;
+            --card2: #1c222b;
+            --border: #2a323d;
+            --orange: #f59e0b;
+            --text: #e8edf2;
+            --text2: #8b95a5;
+        }
+
+        * {
             margin: 0;
             padding: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* ===== LOADING ===== */
+        #loading {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease, visibility 0.6s;
+        }
+
+        #loading.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-logo {
             font-size: 48px;
-            font-weight: 600;
+            font-weight: 900;
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, #f59e0b, #ef4444, #f59e0b);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 2s linear infinite;
+            margin-bottom: 40px;
+        }
+
+        @keyframes shine {
+            to { background-position: 200% center; }
+        }
+
+        .loader-bar {
+            width: 160px;
+            height: 5px;
+            background: #1c222b;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .loader-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+            border-radius: 10px;
+            animation: loading 1.7s ease-in-out forwards;
+        }
+
+        @keyframes loading {
+            0% { width: 0; }
+            100% { width: 100%; }
+        }
+
+        .loader-text {
+            margin-top: 18px;
+            color: var(--text2);
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        /* ===== APP ===== */
+        #app {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        #app.show {
+            display: flex;
+        }
+
+        /* Header */
+        .header {
+            padding: 14px 16px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 900;
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .balance {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 6px 12px;
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--orange);
+        }
+
+        /* Screens */
+        .screens {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 90px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .card-title {
+            font-size: 13px;
+            color: var(--text2);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Daily */
+        .daily-btn {
+            width: 100%;
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            color: #111;
+            font-weight: 800;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Section */
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 20px 0 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title span {
+            font-size: 13px;
+            color: #58a6ff;
+            font-weight: 500;
+        }
+
+        /* Cases */
+        .cases-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .case-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px 12px;
             text-align: center;
+        }
+
+        .case-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 10px;
+            background: linear-gradient(145deg, #1c222b, #0f1318);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            border: 1px solid var(--border);
+        }
+
+        .case-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .case-price {
+            color: var(--orange);
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        /* Popular small */
+        .popular-row {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+        }
+
+        .popular-item {
+            min-width: 90px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 8px;
+            text-align: center;
+        }
+
+        .popular-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .popular-name {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .popular-price {
+            color: var(--orange);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        /* Bottom nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #0b0f14;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0 16px;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text2);
+            font-size: 11px;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--orange);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        /* Simple other screens */
+        .empty-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+            color: var(--text2);
+            text-align: center;
+            gap: 12px;
+        }
+
+        .empty-screen .big-icon {
+            font-size: 56px;
+            opacity: 0.7;
         }
     </style>
 </head>
 <body>
-    <div>Привет 👋</div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-    </script>
+<!-- LOADING -->
+<div id="loading">
+    <div class="loader-logo">CS3AR</div>
+    <div class="loader-bar"><div class="loader-fill"></div></div>
+    <div class="loader-text">Завантаження...</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">CS3AR</div>
+        <div class="user-block">
+            <div class="avatar">👤</div>
+            <div class="balance">3 450 🪙</div>
+        </div>
+    </div>
+
+    <div class="screens">
+        <!-- ГОЛОВНА -->
+        <div id="home" class="screen active">
+            <!-- Щоденний бонус -->
+            <div class="card">
+                <div class="card-title">🎁 Щоденний бонус</div>
+                <button class="daily-btn">ЗАБРАТИ БОНУС · 50 🪙</button>
+            </div>
+
+            <!-- Відкриття кейсів -->
+            <div class="section-title">
+                Відкриття кейсів
+                <span>Всі →</span>
+            </div>
+            <div class="cases-row">
+                <div class="case-card">
+                    <div class="case-icon">📦</div>
+                    <div class="case-name">CS3AR Case</div>
+                    <div class="case-price">200 🪙</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-icon">🔫</div>
+                    <div class="case-name">AK Case</div>
+                    <div class="case-price">300 🪙</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-icon">🧤</div>
+                    <div class="case-name">Gloves Case</div>
+                    <div class="case-price">750 🪙</div>
+                </div>
+                <div class="case-card">
+                    <div class="case-icon">🔪</div>
+                    <div class="case-name">Knife Case</div>
+                    <div class="case-price">1 500 🪙</div>
+                </div>
+            </div>
+
+            <!-- Популярні -->
+            <div class="section-title">Популярні кейси</div>
+            <div class="popular-row">
+                <div class="popular-item">
+                    <div class="popular-icon">📦</div>
+                    <div class="popular-name">CS3AR</div>
+                    <div class="popular-price">200</div>
+                </div>
+                <div class="popular-item">
+                    <div class="popular-icon">🔫</div>
+                    <div class="popular-name">AK Case</div>
+                    <div class="popular-price">300</div>
+                </div>
+                <div class="popular-item">
+                    <div class="popular-icon">🧤</div>
+                    <div class="popular-name">Gloves</div>
+                    <div class="popular-price">750</div>
+                </div>
+                <div class="popular-item">
+                    <div class="popular-icon">🔪</div>
+                    <div class="popular-name">Knife</div>
+                    <div class="popular-price">1500</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- АРСЕНАЛ -->
+        <div id="arsenal" class="screen">
+            <div class="empty-screen">
+                <div class="big-icon">🔫</div>
+                <div>Арсенал</div>
+                <div style="font-size:13px;">Тут будуть твої скіни</div>
+            </div>
+        </div>
+
+        <!-- КОНТРАКТИ -->
+        <div id="contracts" class="screen">
+            <div class="empty-screen">
+                <div class="big-icon">📜</div>
+                <div>Контракти</div>
+                <div style="font-size:13px;">Скоро</div>
+            </div>
+        </div>
+
+        <!-- ДРУЗІ -->
+        <div id="friends" class="screen">
+            <div class="empty-screen">
+                <div class="big-icon">👥</div>
+                <div>Друзі</div>
+                <div style="font-size:13px;">Реферальна система</div>
+            </div>
+        </div>
+
+        <!-- ІСТОРІЯ -->
+        <div id="history" class="screen">
+            <div class="empty-screen">
+                <div class="big-icon">📋</div>
+                <div>Історія</div>
+                <div style="font-size:13px;">Всі твої дії</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="go('home')">
+            <div class="nav-icon">🏠</div>
+            <div>Головна</div>
+        </div>
+        <div class="nav-item" onclick="go('arsenal')">
+            <div class="nav-icon">🔫</div>
+            <div>Арсенал</div>
+        </div>
+        <div class="nav-item" onclick="go('contracts')">
+            <div class="nav-icon">📜</div>
+            <div>Контракти</div>
+        </div>
+        <div class="nav-item" onclick="go('friends')">
+            <div class="nav-icon">👥</div>
+            <div>Друзі</div>
+        </div>
+        <div class="nav-item" onclick="go('history')">
+            <div class="nav-icon">📋</div>
+            <div>Історія</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    // Загрузка
+    setTimeout(() => {
+        document.getElementById('loading').classList.add('hide');
+        document.getElementById('app').classList.add('show');
+    }, 1900);
+
+    // Навигация
+    function go(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+    }
+</script>
 </body>
 </html>
